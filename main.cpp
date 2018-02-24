@@ -2,8 +2,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 int main(int argc, char* argv[])
 {
+    glfwSetErrorCallback(error_callback);
+
     GLFWwindow* window;
 
     if (!glfwInit()) return -1;
