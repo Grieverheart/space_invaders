@@ -186,7 +186,7 @@ void buffer_draw_sprite(Buffer* buffer, const Sprite& sprite, size_t x, size_t y
 
 void buffer_draw_number(
     Buffer* buffer,
-    const Sprite* number_sprites, size_t number,
+    const Sprite& number_sprite, size_t number,
     size_t x, size_t y,
     uint32_t color)
 {
@@ -202,11 +202,14 @@ void buffer_draw_number(
     while(current_number > 0);
 
     size_t xp = x;
+    size_t stride = number_sprite.width * number_sprite.height;
+    Sprite sprite = number_sprite;
     for(size_t i = 0; i < num_digits; ++i)
     {
         uint8_t digit = digits[num_digits - i - 1];
-        buffer_draw_sprite(buffer, number_sprites[digit], xp, y, color);
-        xp += number_sprites[digit].width + 1;
+        sprite.data = number_sprite.data + digit * stride;
+        buffer_draw_sprite(buffer, sprite, xp, y, color);
+        xp += sprite.width + 1;
     }
 }
 
@@ -479,66 +482,20 @@ int main(int argc, char* argv[])
         1,1,1,1,1,1,1,1,1,1,1, // @@@@@@@@@@@
     };
 
-    Sprite number_sprite[10];
-
-    number_sprite[0].width = 5;
-    number_sprite[0].height = 7;
-    number_sprite[0].data = new uint8_t[45]
+    Sprite number_sprite;
+    number_sprite.width = 5;
+    number_sprite.height = 7;
+    number_sprite.data = new uint8_t[45 * 10]
     {
-        0,1,1,1,0,1,0,0,0,1,1,0,0,1,1,1,0,1,0,1,1,1,0,0,1,1,0,0,0,1,0,1,1,1,0
-    };
-    number_sprite[1].width = 5;
-    number_sprite[1].height = 7;
-    number_sprite[1].data = new uint8_t[45]
-    {
-        0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,1,0
-    };
-    number_sprite[2].width = 5;
-    number_sprite[2].height = 7;
-    number_sprite[2].data = new uint8_t[45]
-    {
-        0,1,1,1,0,1,0,0,0,1,0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,0,1,1,1,1,1
-    };
-    number_sprite[3].width = 5;
-    number_sprite[3].height = 7;
-    number_sprite[3].data = new uint8_t[45]
-    {
-        1,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1,0,1,1,1,0
-    };
-    number_sprite[4].width = 5;
-    number_sprite[4].height = 7;
-    number_sprite[4].data = new uint8_t[45]
-    {
-        0,0,0,1,0,0,0,1,1,0,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,0,0,0,1,0,0,0,0,1,0
-    };
-    number_sprite[5].width = 5;
-    number_sprite[5].height = 7;
-    number_sprite[5].data = new uint8_t[45]
-    {
-        1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,1,0,1,1,1,0
-    };
-    number_sprite[6].width = 5;
-    number_sprite[6].height = 7;
-    number_sprite[6].data = new uint8_t[45]
-    {
-        0,1,1,1,0,1,0,0,0,1,1,0,0,0,0,1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0
-    };
-    number_sprite[7].width = 5;
-    number_sprite[7].height = 7;
-    number_sprite[7].data = new uint8_t[45]
-    {
-        1,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0
-    };
-    number_sprite[8].width = 5;
-    number_sprite[8].height = 7;
-    number_sprite[8].data = new uint8_t[45]
-    {
-        0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0
-    };
-    number_sprite[9].width = 5;
-    number_sprite[9].height = 7;
-    number_sprite[9].data = new uint8_t[45]
-    {
+        0,1,1,1,0,1,0,0,0,1,1,0,0,1,1,1,0,1,0,1,1,1,0,0,1,1,0,0,0,1,0,1,1,1,0,
+        0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,1,0,
+        0,1,1,1,0,1,0,0,0,1,0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,0,1,1,1,1,1,
+        1,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1,0,1,1,1,0,
+        0,0,0,1,0,0,0,1,1,0,0,1,0,1,0,1,0,0,1,0,1,1,1,1,1,0,0,0,1,0,0,0,0,1,0,
+        1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,1,0,1,1,1,0,
+        0,1,1,1,0,1,0,0,0,1,1,0,0,0,0,1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0,
+        1,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,
+        0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0,
         0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,0,1,0,1,1,1,0
     };
 
@@ -611,7 +568,7 @@ int main(int argc, char* argv[])
         buffer_clear(&buffer, clear_color);
 
         // Draw
-        buffer_draw_number(&buffer, number_sprite, score, 4, 0, rgb_to_uint32(128, 0, 0));
+        buffer_draw_number(&buffer, number_sprite, score, 4, game.height - number_sprite.height - 5, rgb_to_uint32(128, 0, 0));
 
         for(size_t ai = 0; ai < game.num_aliens; ++ai)
         {
@@ -748,11 +705,7 @@ int main(int argc, char* argv[])
         delete[] alien_sprites[i].data;
     }
 
-    for(size_t i = 0; i < 10; ++i)
-    {
-        delete[] number_sprite[i].data;
-    }
-
+    delete[] number_sprite.data;
     delete[] alien_death_sprite.data;
 
     for(size_t i = 0; i < 3; ++i)
