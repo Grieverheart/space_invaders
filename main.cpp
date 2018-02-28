@@ -661,6 +661,12 @@ int main(int argc, char* argv[])
 
         buffer_draw_number(&buffer, number_spritesheet, score, 4 + 2 * number_spritesheet.width, game.height - 2 * number_spritesheet.height - 12, rgb_to_uint32(128, 0, 0));
 
+        for(size_t i = 0; i < game.width; ++i)
+        {
+            buffer.data[game.width * 16 + i] = rgb_to_uint32(128, 0, 0);
+        }
+
+
         for(size_t ai = 0; ai < game.num_aliens; ++ai)
         {
             if(!death_counters[ai]) continue;
