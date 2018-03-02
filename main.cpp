@@ -798,23 +798,48 @@ int main(int argc, char* argv[])
                     alien_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y,
                     player_sprite, game.player.x, game.player.y
                 );
-                if(overlap)
+                if(!overlap) continue;
+
+                --game.player.life;
+                if(game.player.life == 0)
                 {
-                    --game.player.life;
-                    if(game.player.life == 0)
-                    {
-                        //NOTE: The rest of the frame is still going to be simulated.
-                        //perhaps we need to check if the game is over or not.
-                        break;
-                    }
-                    game.bullets[bi] = game.bullets[game.num_bullets - 1];
-                    --game.num_bullets;
+                    //NOTE: The rest of the frame is still going to be simulated.
+                    //perhaps we need to check if the game is over or not.
+                    break;
                 }
+                game.bullets[bi] = game.bullets[game.num_bullets - 1];
+                --game.num_bullets;
             }
             // Player bullet
             else
             {
-                //TODO: Also check for overlap with alien bullets.
+                // Check if player bullet hits an alien bullet
+                for(size_t bj = 0; bj < game.num_bullets; ++bj)
+                {
+                    if(bi == bj) continue;
+
+                    bool overlap = sprite_overlap_check(
+                        player_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y,
+                        alien_bullet_sprite, game.bullets[bj].x, game.bullets[bj].y
+                    );
+                    if(!overlap) continue;
+
+                    // NOTE: Make sure it works.
+                    if(bj == game.num_bullets - 1)
+                    {
+                        game.bullets[bi] = game.bullets[game.num_bullets - 2];
+                    }
+                    else if(bi == game.num_bullets - 1)
+                    {
+                        game.bullets[bj] = game.bullets[game.num_bullets - 2];
+                    }
+                    else
+                    {
+                        game.bullets[(bi < bj)? bi: bj] = game.bullets[game.num_bullets - 1];
+                        game.bullets[(bi < bj)? bj: bi] = game.bullets[game.num_bullets - 2];
+                    }
+                    game.num_bullets -= 2;
+                }
 
                 // Check hit
                 for(size_t ai = 0; ai < game.num_aliens; ++ai)
@@ -829,16 +854,14 @@ int main(int argc, char* argv[])
                         player_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y,
                         alien_sprite, alien.x, alien.y
                     );
-                    if(overlap)
-                    {
-                        score += 10 * (4 - game.aliens[ai].type);
-                        game.aliens[ai].type = ALIEN_DEAD;
-                        // NOTE: Hack to recenter death sprite
-                        game.aliens[ai].x -= (alien_death_sprite.width - alien_sprite.width)/2;
-                        game.bullets[bi] = game.bullets[game.num_bullets - 1];
-                        --game.num_bullets;
-                        continue;
-                    }
+                    if(!overlap) continue;
+
+                    score += 10 * (4 - game.aliens[ai].type);
+                    game.aliens[ai].type = ALIEN_DEAD;
+                    // NOTE: Hack to recenter death sprite
+                    game.aliens[ai].x -= (alien_death_sprite.width - alien_sprite.width)/2;
+                    game.bullets[bi] = game.bullets[game.num_bullets - 1];
+                    --game.num_bullets;
                 }
             }
         }
