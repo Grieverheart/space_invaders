@@ -643,6 +643,8 @@ int main(int argc, char* argv[])
 
     game.player.life = 3;
 
+    size_t alien_swarm_position = 24;
+
     for(size_t yi = 0; yi < 5; ++yi)
     {
         for(size_t xi = 0; xi < 11; ++xi)
@@ -652,7 +654,7 @@ int main(int argc, char* argv[])
 
             const Sprite& sprite = alien_sprites[2 * (alien.type - 1)];
 
-            alien.x = 16 * xi + 20 + (alien_death_sprite.width - sprite.width)/2;
+            alien.x = 16 * xi + alien_swarm_position + (alien_death_sprite.width - sprite.width)/2;
             alien.y = 17 * yi + 128;
         }
     }
@@ -666,8 +668,10 @@ int main(int argc, char* argv[])
     uint32_t clear_color = rgb_to_uint32(0, 128, 0);
     uint32_t rng = 13;
 
-    size_t alien_update_frequency = 120;
+    size_t alien_swarm_max_position = game.width - 16 * 11;
+    size_t alien_update_frequency = 60;
     size_t alien_update_timer = 0;
+    int alien_move_dir = 2;
 
     size_t score = 0;
     size_t credits = 0;
@@ -859,6 +863,7 @@ int main(int argc, char* argv[])
         }
 
         // Simulate aliens
+        
         for(size_t ai = 0; ai < game.num_aliens; ++ai)
         {
             const Alien& alien = game.aliens[ai];
@@ -871,6 +876,26 @@ int main(int argc, char* argv[])
         if(alien_update_timer == alien_update_frequency - 1)
         {
             alien_update_timer = 0;
+
+
+            for(size_t ai = 0; ai < game.num_aliens; ++ai)
+            {
+                Alien& alien = game.aliens[ai];
+                alien.x += alien_move_dir;
+            }
+
+            if((int)alien_swarm_position + alien_move_dir < 0)
+            {
+                alien_swarm_position = 0;
+                alien_move_dir *= -1;
+            }
+            else if(alien_swarm_position > alien_swarm_max_position - alien_move_dir)
+            {
+                alien_swarm_position = alien_swarm_max_position;
+                alien_move_dir *= -1;
+            }
+            else alien_swarm_position += alien_move_dir;
+
             size_t rai = game.num_aliens * random(&rng);
             while(game.aliens[rai].type == ALIEN_DEAD)
             {
