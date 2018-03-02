@@ -687,16 +687,36 @@ int main(int argc, char* argv[])
     {
         buffer_clear(&buffer, clear_color);
 
+
+        if(game.player.life == 0)
+        {
+
+            buffer_draw_text(&buffer, text_spritesheet, "GAME OVER", game.width / 2 - 30, game.height / 2, rgb_to_uint32(128, 0, 0));
+            buffer_draw_text(&buffer, text_spritesheet, "SCORE", 4, game.height - text_spritesheet.height - 7, rgb_to_uint32(128, 0, 0));
+            buffer_draw_number(&buffer, number_spritesheet, score, 4 + 2 * number_spritesheet.width, game.height - 2 * number_spritesheet.height - 12, rgb_to_uint32(128, 0, 0));
+
+            glTexSubImage2D(
+                GL_TEXTURE_2D, 0, 0, 0,
+                buffer.width, buffer.height,
+                GL_RGBA, GL_UNSIGNED_INT_8_8_8_8,
+                buffer.data
+            );
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            continue;
+        }
+
         // Draw
         buffer_draw_text(&buffer, text_spritesheet, "SCORE", 4, game.height - text_spritesheet.height - 7, rgb_to_uint32(128, 0, 0));
+        buffer_draw_number(&buffer, number_spritesheet, score, 4 + 2 * number_spritesheet.width, game.height - 2 * number_spritesheet.height - 12, rgb_to_uint32(128, 0, 0));
 
         {
             char credit_text[16];
             sprintf(credit_text, "CREDIT %02lu", credits);
             buffer_draw_text(&buffer, text_spritesheet, credit_text, 164, 7, rgb_to_uint32(128, 0, 0));
         }
-
-        buffer_draw_number(&buffer, number_spritesheet, score, 4 + 2 * number_spritesheet.width, game.height - 2 * number_spritesheet.height - 12, rgb_to_uint32(128, 0, 0));
 
 
         buffer_draw_number(&buffer, number_spritesheet, game.player.life, 4, 7, rgb_to_uint32(128, 0, 0));
@@ -783,7 +803,8 @@ int main(int argc, char* argv[])
                     --game.player.life;
                     if(game.player.life == 0)
                     {
-                        game_running = false;
+                        //NOTE: The rest of the frame is still going to be simulated.
+                        //perhaps we need to check if the game is over or not.
                         break;
                     }
                     game.bullets[bi] = game.bullets[game.num_bullets - 1];
@@ -793,6 +814,8 @@ int main(int argc, char* argv[])
             // Player bullet
             else
             {
+                //TODO: Also check for overlap with alien bullets.
+
                 // Check hit
                 for(size_t ai = 0; ai < game.num_aliens; ++ai)
                 {
