@@ -605,9 +605,7 @@ int main(int argc, char* argv[])
     player_bullet_sprite.height = 3;
     player_bullet_sprite.data = new uint8_t[3]
     {
-        1, // @
-        1, // @
-        1  // @
+        1, 1, 1
     };
 
     Sprite alien_bullet_sprite;
@@ -615,13 +613,7 @@ int main(int argc, char* argv[])
     alien_bullet_sprite.height = 7;
     alien_bullet_sprite.data = new uint8_t[21]
     {
-        0,1,0,
-        1,0,0,
-        0,1,0,
-        0,0,1,
-        0,1,0,
-        1,0,0,
-        0,1,0,
+        0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,
     };
 
 
