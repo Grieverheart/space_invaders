@@ -608,14 +608,31 @@ int main(int argc, char* argv[])
         1, 1, 1
     };
 
-    Sprite alien_bullet_sprite;
-    alien_bullet_sprite.width = 3;
-    alien_bullet_sprite.height = 7;
-    alien_bullet_sprite.data = new uint8_t[21]
+    Sprite alien_bullet_sprite[2];
+    alien_bullet_sprite[0].width = 3;
+    alien_bullet_sprite[0].height = 7;
+    alien_bullet_sprite[0].data = new uint8_t[21]
     {
         0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,
     };
 
+    alien_bullet_sprite[1].width = 3;
+    alien_bullet_sprite[1].height = 7;
+    alien_bullet_sprite[1].data = new uint8_t[21]
+    {
+        0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,
+    };
+
+
+    SpriteAnimation alien_bullet_animation;
+    alien_bullet_animation.loop = true;
+    alien_bullet_animation.num_frames = 2;
+    alien_bullet_animation.frame_duration = 5;
+    alien_bullet_animation.time = 0;
+
+    alien_bullet_animation.frames = new Sprite*[2];
+    alien_bullet_animation.frames[0] = &alien_bullet_sprite[0];
+    alien_bullet_animation.frames[1] = &alien_bullet_sprite[1];
 
     SpriteAnimation alien_animation[3];
 
@@ -754,8 +771,14 @@ int main(int argc, char* argv[])
         for(size_t bi = 0; bi < game.num_bullets; ++bi)
         {
             const Bullet& bullet = game.bullets[bi];
-            const Sprite& sprite = (bullet.dir > 0)? player_bullet_sprite: alien_bullet_sprite;
-            buffer_draw_sprite(&buffer, sprite, bullet.x, bullet.y, rgb_to_uint32(128, 0, 0));
+            const Sprite* sprite;
+            if(bullet.dir > 0) sprite = &player_bullet_sprite;
+            else
+            {
+                size_t cf = alien_bullet_animation.time / alien_bullet_animation.frame_duration;
+                sprite = &alien_bullet_sprite[cf];
+            }
+            buffer_draw_sprite(&buffer, *sprite, bullet.x, bullet.y, rgb_to_uint32(128, 0, 0));
         }
 
         buffer_draw_sprite(&buffer, player_sprite, game.player.x, game.player.y, rgb_to_uint32(128, 0, 0));
@@ -785,7 +808,7 @@ int main(int argc, char* argv[])
             if(game.bullets[bi].dir < 0)
             {
                 bool overlap = sprite_overlap_check(
-                    alien_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y,
+                    alien_bullet_sprite[0], game.bullets[bi].x, game.bullets[bi].y,
                     player_sprite, game.player.x, game.player.y
                 );
 
@@ -809,7 +832,7 @@ int main(int argc, char* argv[])
 
                     bool overlap = sprite_overlap_check(
                         player_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y,
-                        alien_bullet_sprite, game.bullets[bj].x, game.bullets[bj].y
+                        alien_bullet_sprite[0], game.bullets[bj].x, game.bullets[bj].y
                     );
 
                     if(overlap)
@@ -917,7 +940,7 @@ int main(int argc, char* argv[])
                 }
                 const Sprite& alien_sprite = *alien_animation[game.aliens[rai].type - 1].frames[0];
                 game.bullets[game.num_bullets].x = game.aliens[rai].x + alien_sprite.width / 2;
-                game.bullets[game.num_bullets].y = game.aliens[rai].y - alien_bullet_sprite.height;
+                game.bullets[game.num_bullets].y = game.aliens[rai].y - alien_bullet_sprite[0].height;
                 game.bullets[game.num_bullets].dir = -2;
                 ++game.num_bullets;
             }
@@ -931,6 +954,11 @@ int main(int argc, char* argv[])
             {
                 alien_animation[i].time = 0;
             }
+        }
+        ++alien_bullet_animation.time;
+        if(alien_bullet_animation.time >= alien_bullet_animation.num_frames * alien_bullet_animation.frame_duration)
+        {
+            alien_bullet_animation.time = 0;
         }
 
         ++alien_update_timer;
@@ -991,7 +1019,9 @@ int main(int argc, char* argv[])
     delete[] text_spritesheet.data;
     delete[] alien_death_sprite.data;
     delete[] player_bullet_sprite.data;
-    delete[] alien_bullet_sprite.data;
+    delete[] alien_bullet_sprite[0].data;
+    delete[] alien_bullet_sprite[1].data;
+    delete[] alien_bullet_animation.frames;
 
     for(size_t i = 0; i < 3; ++i)
     {
