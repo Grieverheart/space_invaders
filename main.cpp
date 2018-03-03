@@ -915,15 +915,20 @@ int main(int argc, char* argv[])
 
             if((int)alien_swarm_position + alien_move_dir < 0)
             {
-                alien_swarm_position = 0;
                 alien_move_dir *= -1;
+                //TODO: Perhaps if aliens get close enough to player, we need to check
+                //for overlap. What happens when alien moves over line y = 0 line?
+                for(size_t ai = 0; ai < game.num_aliens; ++ai)
+                {
+                    Alien& alien = game.aliens[ai];
+                    alien.y -= 8;
+                }
             }
             else if(alien_swarm_position > alien_swarm_max_position - alien_move_dir)
             {
-                alien_swarm_position = alien_swarm_max_position;
                 alien_move_dir *= -1;
             }
-            else alien_swarm_position += alien_move_dir;
+            alien_swarm_position += alien_move_dir;
 
             for(size_t ai = 0; ai < game.num_aliens; ++ai)
             {
@@ -991,6 +996,8 @@ int main(int argc, char* argv[])
             while(game.aliens[ai].type == ALIEN_DEAD) --ai;
             pos = game.width - game.aliens[ai].x - 13 + pos;
             if(pos > alien_swarm_max_position) alien_swarm_max_position = pos;
+
+            printf("%lu, %lu\n", alien_swarm_position, alien_swarm_max_position);
         }
 
         // Process events
