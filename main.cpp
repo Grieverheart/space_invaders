@@ -647,11 +647,11 @@ int main(int argc, char* argv[])
 
     size_t alien_swarm_position = 24;
 
-    for(size_t yi = 0; yi < 5; ++yi)
+    for(size_t xi = 0; xi < 11; ++xi)
     {
-        for(size_t xi = 0; xi < 11; ++xi)
+        for(size_t yi = 0; yi < 5; ++yi)
         {
-            Alien& alien = game.aliens[yi * 11 + xi];
+            Alien& alien = game.aliens[xi * 5 + yi];
             alien.type = (5 - yi) / 2 + 1;
 
             const Sprite& sprite = alien_sprites[2 * (alien.type - 1)];
@@ -670,7 +670,7 @@ int main(int argc, char* argv[])
     uint32_t clear_color = rgb_to_uint32(0, 128, 0);
     uint32_t rng = 13;
 
-    size_t alien_swarm_max_position = game.width - 16 * 11;
+    size_t alien_swarm_max_position = game.width - 16 * 11 - 3;
     size_t alien_update_timer = 0;
     size_t aliens_killed = 0;
     int alien_move_dir = 4;
@@ -890,13 +890,6 @@ int main(int argc, char* argv[])
         {
             alien_update_timer = 0;
 
-
-            for(size_t ai = 0; ai < game.num_aliens; ++ai)
-            {
-                Alien& alien = game.aliens[ai];
-                alien.x += alien_move_dir;
-            }
-
             if((int)alien_swarm_position + alien_move_dir < 0)
             {
                 alien_swarm_position = 0;
@@ -909,6 +902,11 @@ int main(int argc, char* argv[])
             }
             else alien_swarm_position += alien_move_dir;
 
+            for(size_t ai = 0; ai < game.num_aliens; ++ai)
+            {
+                Alien& alien = game.aliens[ai];
+                alien.x += alien_move_dir;
+            }
 
             if(aliens_killed < game.num_aliens)
             {
@@ -951,6 +949,20 @@ int main(int argc, char* argv[])
                 game.player.x = 0;
             }
             else game.player.x += player_move_dir;
+        }
+
+        if(aliens_killed < game.num_aliens)
+        {
+            size_t ai = 0;
+            while(game.aliens[ai].type == ALIEN_DEAD) ++ai;
+            const Sprite& sprite = alien_sprites[2 * (game.aliens[ai].type - 1)];
+            size_t pos = game.aliens[ai].x - (alien_death_sprite.width - sprite.width)/2;
+            if(pos > alien_swarm_position) alien_swarm_position = pos;
+
+            ai = game.num_aliens - 1;
+            while(game.aliens[ai].type == ALIEN_DEAD) --ai;
+            pos = game.width - game.aliens[ai].x - 13 + pos;
+            if(pos > alien_swarm_max_position) alien_swarm_max_position = pos;
         }
 
         // Process events
