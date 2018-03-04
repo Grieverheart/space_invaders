@@ -87,12 +87,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
 uint32_t xorshift32(uint32_t* rng)
 {
-	uint32_t x = *rng;
-	x ^= x << 13;
-	x ^= x >> 17;
-	x ^= x << 5;
-	*rng = x;
-	return x;
+    uint32_t x = *rng;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    *rng = x;
+    return x;
 }
 
 double random(uint32_t* rng)
@@ -663,6 +663,11 @@ int main(int argc, char* argv[])
     game.player.life = 3;
 
     size_t alien_swarm_position = 24;
+    size_t alien_swarm_max_position = game.width - 16 * 11 - 3;
+
+    size_t aliens_killed = 0;
+    size_t alien_update_timer = 0;
+    bool should_change_speed = false;
 
     for(size_t xi = 0; xi < 11; ++xi)
     {
@@ -687,12 +692,7 @@ int main(int argc, char* argv[])
     uint32_t clear_color = rgb_to_uint32(0, 128, 0);
     uint32_t rng = 13;
 
-    size_t alien_swarm_max_position = game.width - 16 * 11 - 3;
-    size_t alien_update_timer = 0;
-    size_t aliens_killed = 0;
     int alien_move_dir = 4;
-
-    bool should_change_speed = false;
 
     size_t score = 0;
     size_t credits = 0;
@@ -898,7 +898,7 @@ int main(int argc, char* argv[])
                 alien_animation[i].frame_duration = alien_update_frequency;
             }
         }
-        
+
         // Update death counters
         for(size_t ai = 0; ai < game.num_aliens; ++ai)
         {
@@ -996,8 +996,34 @@ int main(int argc, char* argv[])
             while(game.aliens[ai].type == ALIEN_DEAD) --ai;
             pos = game.width - game.aliens[ai].x - 13 + pos;
             if(pos > alien_swarm_max_position) alien_swarm_max_position = pos;
+        }
+        else
+        {
+            alien_update_frequency = 120;
+            alien_swarm_position = 24;
 
-            printf("%lu, %lu\n", alien_swarm_position, alien_swarm_max_position);
+            aliens_killed = 0;
+            alien_update_timer = 0;
+
+            alien_move_dir = 4;
+
+            for(size_t xi = 0; xi < 11; ++xi)
+            {
+                for(size_t yi = 0; yi < 5; ++yi)
+                {
+                    size_t ai = xi * 5 + yi;
+
+                    death_counters[ai] = 10;
+
+                    Alien& alien = game.aliens[ai];
+                    alien.type = (5 - yi) / 2 + 1;
+
+                    const Sprite& sprite = alien_sprites[2 * (alien.type - 1)];
+
+                    alien.x = 16 * xi + alien_swarm_position + (alien_death_sprite.width - sprite.width)/2;
+                    alien.y = 17 * yi + 128;
+                }
+            }
         }
 
         // Process events
