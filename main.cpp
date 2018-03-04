@@ -663,6 +663,11 @@ int main(int argc, char* argv[])
     game.player.life = 3;
 
     size_t alien_swarm_position = 24;
+    size_t alien_swarm_max_position = game.width - 16 * 11 - 3;
+
+    size_t aliens_killed = 0;
+    size_t alien_update_timer = 0;
+    bool should_change_speed = false;
 
     for(size_t xi = 0; xi < 11; ++xi)
     {
@@ -687,12 +692,7 @@ int main(int argc, char* argv[])
     uint32_t clear_color = rgb_to_uint32(0, 128, 0);
     uint32_t rng = 13;
 
-    size_t alien_swarm_max_position = game.width - 16 * 11 - 3;
-    size_t alien_update_timer = 0;
-    size_t aliens_killed = 0;
     int alien_move_dir = 4;
-
-    bool should_change_speed = false;
 
     size_t score = 0;
     size_t credits = 0;
@@ -996,8 +996,6 @@ int main(int argc, char* argv[])
             while(game.aliens[ai].type == ALIEN_DEAD) --ai;
             pos = game.width - game.aliens[ai].x - 13 + pos;
             if(pos > alien_swarm_max_position) alien_swarm_max_position = pos;
-
-            printf("%lu, %lu\n", alien_swarm_position, alien_swarm_max_position);
         }
 
         // Process events
