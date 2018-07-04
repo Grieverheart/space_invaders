@@ -1,8 +1,0 @@
-# Readme
-
-## Install and run on Mac
-
-  brew install glfw
-  ./make.sh
-  chmod +x ./main
-  ./main
