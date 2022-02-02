@@ -1017,7 +1017,10 @@ int main(int argc, char* argv[])
             should_change_speed = true;
             game.num_bullets = 0;
             alien_swarm_max_position = game.width - 16 * 11 - 3; //Reset max alien width
-            alien_update_frequency = 120;
+		
+	    // since we are updating speed right away to fix animation
+	    // lets just double the initial speed.(for sub 1 frame)
+            alien_update_frequency = 120*2;
             alien_swarm_position = 24;
 
             aliens_killed = 0;
