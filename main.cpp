@@ -7,6 +7,7 @@
 bool game_running = false;
 int move_dir = 0;
 bool fire_pressed = 0;
+bool reset = 0;
 
 #define GL_ERROR_CASE(glerror)\
     case glerror: snprintf(error, sizeof(error), "%s", #glerror)
@@ -79,6 +80,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     case GLFW_KEY_SPACE:
         if(action == GLFW_RELEASE) fire_pressed = true;
         break;
+	case GLFW_KEY_R:
+		if (action == GLFW_RELEASE) reset = true;
+		break;
     default:
         break;
     }
@@ -722,6 +726,10 @@ int main(int argc, char* argv[])
 
             glfwSwapBuffers(window);
             glfwPollEvents();
+
+            if (reset)
+                //Exit this IF Statement... will be change properly further down.
+                game.player.life = 1;
             continue;
         }
 
@@ -984,7 +992,7 @@ int main(int argc, char* argv[])
             else game.player.x += player_move_dir;
         }
 
-        if(aliens_killed < game.num_aliens)
+        if(aliens_killed < game.num_aliens && !reset)
         {
             size_t ai = 0;
             while(game.aliens[ai].type == ALIEN_DEAD) ++ai;
@@ -999,6 +1007,16 @@ int main(int argc, char* argv[])
         }
         else
         {
+            if (reset)
+            {
+                reset = false;
+                game.player.life = 3;
+                score = 0;
+                fire_pressed = false;
+            }
+            should_change_speed = true;
+            game.num_bullets = 0;
+            alien_swarm_max_position = game.width - 16 * 11 - 3; //Reset max alien width
             alien_update_frequency = 120;
             alien_swarm_position = 24;
 
